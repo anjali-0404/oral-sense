@@ -1,16 +1,10 @@
-<<<<<<< HEAD
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
-=======
 "use client";
 import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs";
->>>>>>> origin/branch1
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "../ui/button";
 
 function Header() {
-<<<<<<< HEAD
-=======
   const { isSignedIn } = useUser();
   const clerk = useClerk();
 
@@ -33,8 +27,6 @@ function Header() {
       console.debug("SignUp modal suppressed because a session exists.", e);
     }
   };
-
->>>>>>> origin/branch1
   return (
     <nav className="fixed top-0 right-0 left-0 z-50 px-6 py-2 border-b border-border/50 bg-background/80 backdrop-blur-md h-16">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
@@ -56,16 +48,6 @@ function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-<<<<<<< HEAD
-          <SignInButton mode="modal">
-            <Button variant={"ghost"} size={"sm"}>
-              Login
-            </Button>
-          </SignInButton>
-          <SignUpButton mode="modal">
-            <Button size={"sm"}>Sign Up</Button>
-          </SignUpButton>
-=======
           <SignedOut>
             <Button variant={"ghost"} size={"sm"} onClick={handleOpenSignIn}>
               Login
@@ -78,7 +60,6 @@ function Header() {
           <SignedIn>
             <UserButton afterSignOutUrl="/" />
           </SignedIn>
->>>>>>> origin/branch1
         </div>
       </div>
     </nav>
