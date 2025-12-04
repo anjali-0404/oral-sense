@@ -453,11 +453,23 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
               <div className="flex-1">
                 <h4 className="font-semibold text-destructive mb-2">Voice Call Error</h4>
                 <p className="text-destructive/90 mb-3">{vapiInitError}</p>
+                <div className="space-y-2 mb-3">
+                  <Link href="/voice-diagnostics">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="gap-2 text-destructive border-destructive hover:bg-destructive/10"
+                    >
+                      Run Diagnostics
+                    </Button>
+                  </Link>
+                </div>
                 <details className="text-xs text-destructive/80 space-y-1">
                   <summary className="cursor-pointer font-medium hover:text-destructive">
                     Troubleshooting Tips
                   </summary>
                   <ul className="list-disc list-inside pl-2 mt-2 space-y-1">
+                    <li>Go to <a href="/voice-diagnostics" className="underline">Diagnostics Page</a> to check your setup</li>
                     <li>Check browser console (F12) for detailed error messages</li>
                     <li>Verify NEXT_PUBLIC_VAPI_API_KEY is set in .env file</li>
                     <li>Verify NEXT_PUBLIC_VAPI_ASSISTANT_ID is set in .env file</li>
