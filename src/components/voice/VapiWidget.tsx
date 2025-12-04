@@ -72,7 +72,7 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
       return;
     }
     const handleCallStart = () => {
-      console.log("📞 Call started");
+      console.log("📞 Call started successfully");
       setConnecting(false);
       setCallActive(true);
       setCallEnded(false);
@@ -119,27 +119,48 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
 
     const handleError = (error: any) => {
       console.error("❌ VAPI Error Details:", {
-        message: error?.message,
+        message: error?.message || "No message",
         code: error?.code,
         statusCode: error?.statusCode,
+        status: error?.status,
+        name: error?.name,
+        toString: error?.toString?.(),
         error: error,
         type: typeof error,
-        keys: error ? Object.keys(error) : []
+        keys: error ? Object.keys(error) : [],
+        isEmptyObject: error && Object.keys(error).length === 0
       });
       
-      // Provide user-friendly error message
+      // Try to extract error info from various sources
       let errorMessage = "An error occurred during the voice call";
       
-      if (error?.message?.includes("Invalid")) {
-        errorMessage = "Invalid assistant ID or API key. Please check your environment variables.";
-      } else if (error?.statusCode === 401 || error?.message?.includes("Unauthorized")) {
-        errorMessage = "Authentication failed. Please verify your VAPI API key.";
-      } else if (error?.statusCode === 429 || error?.message?.includes("rate")) {
+      if (error) {
+        if (error.message) {
+          errorMessage = error.message;
+        } else if (error.toString && error.toString() !== "[object Object]") {
+          errorMessage = error.toString();
+        } else if (typeof error === "string") {
+          errorMessage = error;
+        } else {
+          errorMessage = "Voice call failed. Please check the browser console (F12) for details.";
+        }
+      }
+      
+      // Additional categorization
+      if (errorMessage.includes("Invalid") || errorMessage.includes("invalid")) {
+        errorMessage = "Invalid assistant ID or API key. Please check your environment variables and VAPI console.";
+      } else if (errorMessage.includes("Unauthorized") || errorMessage.includes("401")) {
+        errorMessage = "Authentication failed. Please verify your VAPI API key at https://console.vapi.ai";
+      } else if (errorMessage.includes("429") || errorMessage.includes("rate")) {
         errorMessage = "Too many requests. Please wait a moment and try again.";
-      } else if (error?.message?.includes("network")) {
+      } else if (errorMessage.includes("network")) {
         errorMessage = "Network connection error. Please check your internet connection.";
-      } else if (error?.message?.includes("microphone") || error?.message?.includes("permission")) {
+      } else if (errorMessage.includes("microphone") || errorMessage.includes("permission")) {
         errorMessage = "Microphone permission denied. Please allow microphone access in browser settings.";
+      } else if (errorMessage.includes("timeout")) {
+        errorMessage = "Connection timeout. The VAPI server may be unavailable. Try again in a moment.";
+      } else if (errorMessage === "An error occurred during the voice call") {
+        errorMessage = "Voice call failed. This may be due to invalid API credentials or assistant configuration. Check the diagnostics page.";
       }
       
       setVapiInitError(errorMessage);
@@ -154,6 +175,14 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
       .on("speech-end", handleSpeechEnd)
       .on("message", handleMessage)
       .on("error", handleError);
+
+    // Also listen for additional error events
+    if (vapi.on) {
+      vapi.on("call-error", (error: any) => {
+        console.error("🚨 Call-error event:", error);
+        handleError(error);
+      });
+    }
 
     // cleanup event listeners on unmount
     return () => {
@@ -453,7 +482,7 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
               <div className="flex-1">
                 <h4 className="font-semibold text-destructive mb-2">Voice Call Error</h4>
                 <p className="text-destructive/90 mb-3">{vapiInitError}</p>
-                <div className="space-y-2 mb-3">
+                <div className="space-y-2 mb-3 flex flex-wrap gap-2">
                   <Link href="/voice-diagnostics">
                     <Button 
                       variant="outline" 
@@ -463,21 +492,37 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
                       Run Diagnostics
                     </Button>
                   </Link>
+                  <a 
+                    href="https://console.vapi.ai" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="gap-2 text-destructive border-destructive hover:bg-destructive/10"
+                    >
+                      Check VAPI Console
+                    </Button>
+                  </a>
                 </div>
                 <details className="text-xs text-destructive/80 space-y-1">
                   <summary className="cursor-pointer font-medium hover:text-destructive">
                     Troubleshooting Tips
                   </summary>
                   <ul className="list-disc list-inside pl-2 mt-2 space-y-1">
-                    <li>Go to <a href="/voice-diagnostics" className="underline">Diagnostics Page</a> to check your setup</li>
+                    <li>Go to <a href="/voice-diagnostics" className="underline font-semibold">Diagnostics Page</a> to check your setup</li>
+                    <li>Visit <a href="https://console.vapi.ai" target="_blank" className="underline font-semibold">VAPI Console</a> to verify assistant is enabled</li>
+                    <li>Verify assistant is NOT in "preview" or "disabled" mode</li>
                     <li>Check browser console (F12) for detailed error messages</li>
                     <li>Verify NEXT_PUBLIC_VAPI_API_KEY is set in .env file</li>
-                    <li>Verify NEXT_PUBLIC_VAPI_ASSISTANT_ID is set in .env file</li>
+                    <li>Verify NEXT_PUBLIC_VAPI_ASSISTANT_ID is set in .env file and matches console</li>
                     <li>Ensure microphone is connected and permissions are granted</li>
-                    <li>Check your browser microphone settings (chrome://settings/content/microphone)</li>
+                    <li>Check your browser microphone settings</li>
                     <li>Try the "Test Audio" button to verify speakers work</li>
                     <li>Clear browser cache and reload (Ctrl+Shift+R)</li>
                     <li>Try a different browser if the issue persists</li>
+                    <li>Restart dev server: <code className="bg-black/10 px-1 rounded">npm run dev</code></li>
                   </ul>
                 </details>
               </div>
