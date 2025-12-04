@@ -42,11 +42,21 @@ export async function getUserAppointments() {
   try {
     // get authenticated user from Clerk
     const { userId } = await auth();
-    if (!userId) throw new Error("You must be logged in to view appointments");
+    
+    // Return empty array if not authenticated
+    if (!userId) {
+      console.log("User not authenticated, returning empty appointments");
+      return [];
+    }
 
     // find user by clerkId from authenticated session
     const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-    if (!user) throw new Error("User not found. Please ensure your account is properly set up.");
+    
+    // Return empty array if user not found
+    if (!user) {
+      console.log("User not found in database, returning empty appointments");
+      return [];
+    }
 
     const appointments = await prisma.appointment.findMany({
       where: { userId: user.id },
@@ -60,18 +70,25 @@ export async function getUserAppointments() {
     return appointments.map(transformAppointment);
   } catch (error) {
     console.error("Error fetching user appointments:", error);
-    throw new Error("Failed to fetch user appointments");
+    return [];
   }
 }
 
 export async function getUserAppointmentStats() {
   try {
     const { userId } = await auth();
-    if (!userId) throw new Error("You must be authenticated");
+    
+    // Return default values if user is not authenticated
+    if (!userId) {
+      return { totalAppointments: 0, completedAppointments: 0 };
+    }
 
     const user = await prisma.user.findUnique({ where: { clerkId: userId } });
 
-    if (!user) throw new Error("User not found");
+    // Return default values if user not found in database
+    if (!user) {
+      return { totalAppointments: 0, completedAppointments: 0 };
+    }
 
     // these calls will run in parallel, instead of waiting each other
     const [totalCount, completedCount] = await Promise.all([

@@ -23,25 +23,25 @@ async function DentalHealthOverview() {
         <div className="grid md:grid-cols-3 gap-6">
           <div className="text-center p-4 bg-muted/30 rounded-xl">
             <div className="text-2xl font-bold text-primary mb-1">
-              {appointmentStats?.completedAppointments || 0}
+              {appointmentStats.completedAppointments}
             </div>
             <div className="text-sm text-muted-foreground">Completed Visits</div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-xl">
             <div className="text-2xl font-bold text-primary mb-1">
-              {appointmentStats?.totalAppointments || 0}
+              {appointmentStats.totalAppointments}
             </div>
             <div className="text-sm text-muted-foreground">Total Appointments</div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-xl">
             <div className="text-2xl font-bold text-primary mb-1">
-              {user?.createdAt ? format(new Date(user.createdAt), "MMM yyyy") : "N/A"}
+              {format(new Date(user?.createdAt!), "MMM yyyy")}
             </div>
             <div className="text-sm text-muted-foreground">Member Since</div>
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-linear-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20">
+        <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20">
           <div className="flex items-start gap-3">
             <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
               <MessageSquareIcon className="size-5 text-primary" />
