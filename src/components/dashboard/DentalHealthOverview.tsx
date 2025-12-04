@@ -23,19 +23,19 @@ async function DentalHealthOverview() {
         <div className="grid md:grid-cols-3 gap-6">
           <div className="text-center p-4 bg-muted/30 rounded-xl">
             <div className="text-2xl font-bold text-primary mb-1">
-              {appointmentStats.completedAppointments}
+              {appointmentStats?.completedAppointments || 0}
             </div>
             <div className="text-sm text-muted-foreground">Completed Visits</div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-xl">
             <div className="text-2xl font-bold text-primary mb-1">
-              {appointmentStats.totalAppointments}
+              {appointmentStats?.totalAppointments || 0}
             </div>
             <div className="text-sm text-muted-foreground">Total Appointments</div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-xl">
             <div className="text-2xl font-bold text-primary mb-1">
-              {format(new Date(user?.createdAt!), "MMM yyyy")}
+              {user?.createdAt ? format(new Date(user.createdAt), "MMM yyyy") : "N/A"}
             </div>
             <div className="text-sm text-muted-foreground">Member Since</div>
           </div>
