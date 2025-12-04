@@ -102,6 +102,27 @@ function AppointmentsPage() {
           <p className="text-muted-foreground">Find and book with verified dentists in your area</p>
         </div>
 
+        {/* SHOW AVAILABLE DOCTORS WITH APPOINTMENT SLOTS */}
+        {currentStep === 1 && (
+          <div className="mb-12 pb-8 border-b border-border">
+            <h2 className="text-xl font-semibold mb-4">Available Appointment Slots</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <div className="bg-card border border-border rounded-lg p-4 text-center">
+                <p className="text-2xl font-bold text-primary">Available Now</p>
+                <p className="text-muted-foreground text-sm mt-1">Start booking your appointment below</p>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-4 text-center">
+                <p className="text-2xl font-bold text-primary">Any Time</p>
+                <p className="text-muted-foreground text-sm mt-1">Choose your preferred date and time</p>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-4 text-center">
+                <p className="text-2xl font-bold text-primary">Multiple Doctors</p>
+                <p className="text-muted-foreground text-sm mt-1">Select from our verified dentists</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <ProgressSteps currentStep={currentStep} />
 
         {currentStep === 1 && (
@@ -156,31 +177,54 @@ function AppointmentsPage() {
       {/* SHOW EXISTING APPOINTMENTS FOR THE CURRENT USER */}
       {userAppointments.length > 0 && (
         <div className="mb-8 max-w-7xl mx-auto px-6 py-8">
-          <h2 className="text-xl font-semibold mb-4">Your Upcoming Appointments</h2>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <span>📅 Your Upcoming Appointments</span>
+            <span className="bg-primary/20 text-primary text-xs px-2 py-1 rounded-full font-medium">
+              {userAppointments.length}
+            </span>
+          </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {userAppointments.map((appointment) => (
-              <div key={appointment.id} className="bg-card border rounded-lg p-4 shadow-sm">
+              <div 
+                key={appointment.id} 
+                className="bg-card border border-border/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+              >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                     <img
                       src={appointment.doctorImageUrl}
                       alt={appointment.doctorName}
                       className="size-10 rounded-full"
                     />
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">{appointment.doctorName}</p>
-                    <p className="text-muted-foreground text-xs">{appointment.reason}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{appointment.doctorName}</p>
+                    <p className="text-muted-foreground text-xs truncate">{appointment.reason}</p>
                   </div>
                 </div>
-                <div className="space-y-1 text-sm">
-                  <p className="text-muted-foreground">
-                    📅 {format(new Date(appointment.date), "MMM d, yyyy")}
+                <div className="space-y-2 text-sm mb-3">
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <span>📅</span> {format(new Date(appointment.date), "MMM d, yyyy")}
                   </p>
-                  <p className="text-muted-foreground">🕐 {appointment.time}</p>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <span>🕐</span> {appointment.time}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span className="text-green-600 font-medium">Confirmed</span>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* SHOW MESSAGE IF NO UPCOMING APPOINTMENTS */}
+      {userAppointments.length === 0 && currentStep > 3 && (
+        <div className="mb-8 max-w-7xl mx-auto px-6 py-8">
+          <div className="bg-card/50 border border-border/50 border-dashed rounded-lg p-8 text-center">
+            <p className="text-muted-foreground">No upcoming appointments. Book one to get started!</p>
           </div>
         </div>
       )}
