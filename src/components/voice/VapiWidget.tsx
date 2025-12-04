@@ -118,7 +118,31 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
     };
 
     const handleError = (error: any) => {
-      console.error("❌ VAPI Error", error);
+      console.error("❌ VAPI Error Details:", {
+        message: error?.message,
+        code: error?.code,
+        statusCode: error?.statusCode,
+        error: error,
+        type: typeof error,
+        keys: error ? Object.keys(error) : []
+      });
+      
+      // Provide user-friendly error message
+      let errorMessage = "An error occurred during the voice call";
+      
+      if (error?.message?.includes("Invalid")) {
+        errorMessage = "Invalid assistant ID or API key. Please check your environment variables.";
+      } else if (error?.statusCode === 401 || error?.message?.includes("Unauthorized")) {
+        errorMessage = "Authentication failed. Please verify your VAPI API key.";
+      } else if (error?.statusCode === 429 || error?.message?.includes("rate")) {
+        errorMessage = "Too many requests. Please wait a moment and try again.";
+      } else if (error?.message?.includes("network")) {
+        errorMessage = "Network connection error. Please check your internet connection.";
+      } else if (error?.message?.includes("microphone") || error?.message?.includes("permission")) {
+        errorMessage = "Microphone permission denied. Please allow microphone access in browser settings.";
+      }
+      
+      setVapiInitError(errorMessage);
       setConnecting(false);
       setCallActive(false);
     };
@@ -155,8 +179,12 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
     
     if (callActive) {
       console.log("🛑 Stopping call");
-      const vapi = getVapi();
-      vapi.stop();
+      try {
+        const vapi = getVapi();
+        vapi.stop();
+      } catch (err) {
+        console.error("Error stopping call:", err);
+      }
     } else {
         try {
         setConnecting(true);
@@ -166,29 +194,71 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
 
         const vapi = getVapi();
         const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+        const apiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY;
         
+        // Validate environment variables
         if (!assistantId) {
           throw new Error("Missing NEXT_PUBLIC_VAPI_ASSISTANT_ID - check your .env file");
         }
+        if (!apiKey) {
+          throw new Error("Missing NEXT_PUBLIC_VAPI_API_KEY - check your .env file");
+        }
 
-        console.log("🚀 Attempting to start call with assistant:", assistantId);
+        console.log("✅ Environment variables configured");
+        console.log("🚀 Assistant ID:", assistantId);
         
         // Check for microphone permissions before starting
         if (typeof window !== "undefined" && window.navigator.mediaDevices) {
           try {
-            await window.navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log("🎤 Requesting microphone access...");
+            const stream = await window.navigator.mediaDevices.getUserMedia({ audio: true });
             console.log("✅ Microphone permission granted");
-          } catch (permErr) {
-            console.warn("⚠️ Microphone permission denied or unavailable:", permErr);
-            // Continue anyway - some environments may not need explicit permission
+            // Stop the stream since we just needed to check permissions
+            stream.getTracks().forEach(track => track.stop());
+          } catch (permErr: any) {
+            console.warn("⚠️ Microphone permission issue:", {
+              name: permErr?.name,
+              message: permErr?.message,
+              type: typeof permErr
+            });
+            
+            if (permErr?.name === "NotAllowedError") {
+              throw new Error("Microphone access denied. Please allow microphone access in browser settings.");
+            } else if (permErr?.name === "NotFoundError") {
+              throw new Error("No microphone found. Please connect a microphone device.");
+            }
+            // Continue for other permission issues
           }
         }
 
-        await vapi.start(assistantId);
-        console.log("✅ VAPI call started successfully");
+        console.log("🚀 Attempting to start call with assistant:", assistantId);
+        
+        // Add timeout to prevent indefinite hanging
+        const callTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Call connection timeout after 15 seconds")), 15000)
+        );
+        
+        const startCall = vapi.start(assistantId);
+        
+        try {
+          await Promise.race([startCall, callTimeout]);
+          console.log("✅ VAPI call started successfully");
+        } catch (timeoutErr) {
+          console.error("⏱️ Call timeout or error:", timeoutErr);
+          throw timeoutErr;
+        }
         } catch (error: any) {
-          console.error("❌ Failed to start call:", error);
-          setVapiInitError(String(error?.message || error));
+          console.error("❌ Failed to start call:", {
+            message: error?.message,
+            stack: error?.stack,
+            code: error?.code,
+            statusCode: error?.statusCode,
+            fullError: error
+          });
+          
+          // Set detailed error message
+          const errorMsg = error?.message || String(error) || "Unknown error occurred";
+          setVapiInitError(errorMsg);
           setConnecting(false);
         }
     }
@@ -375,15 +445,31 @@ function VapiWidget({ isPro = false }: VapiWidgetProps) {
       {/* CALL CONTROLS */}
       {vapiInitError && (
         <div className="max-w-5xl mx-auto px-4 mb-4">
-          <div className="rounded-md bg-destructive/10 border border-destructive p-3 text-sm text-destructive">
-            <strong>Voice initialization error:</strong> {vapiInitError}
-            <p className="text-xs mt-2">Check that:</p>
-            <ul className="text-xs list-disc list-inside mt-1 space-y-1">
-              <li>NEXT_PUBLIC_VAPI_API_KEY is set in .env</li>
-              <li>NEXT_PUBLIC_VAPI_ASSISTANT_ID is set in .env</li>
-              <li>Browser has microphone permission</li>
-              <li>Check browser console (F12) for more details</li>
-            </ul>
+          <div className="rounded-md bg-destructive/10 border border-destructive/50 p-4 text-sm">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-destructive mt-0.5" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-destructive mb-2">Voice Call Error</h4>
+                <p className="text-destructive/90 mb-3">{vapiInitError}</p>
+                <details className="text-xs text-destructive/80 space-y-1">
+                  <summary className="cursor-pointer font-medium hover:text-destructive">
+                    Troubleshooting Tips
+                  </summary>
+                  <ul className="list-disc list-inside pl-2 mt-2 space-y-1">
+                    <li>Check browser console (F12) for detailed error messages</li>
+                    <li>Verify NEXT_PUBLIC_VAPI_API_KEY is set in .env file</li>
+                    <li>Verify NEXT_PUBLIC_VAPI_ASSISTANT_ID is set in .env file</li>
+                    <li>Ensure microphone is connected and permissions are granted</li>
+                    <li>Check your browser microphone settings (chrome://settings/content/microphone)</li>
+                    <li>Try the "Test Audio" button to verify speakers work</li>
+                    <li>Clear browser cache and reload (Ctrl+Shift+R)</li>
+                    <li>Try a different browser if the issue persists</li>
+                  </ul>
+                </details>
+              </div>
+            </div>
           </div>
         </div>
       )}
