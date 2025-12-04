@@ -11,9 +11,12 @@ import { APPOINTMENT_TYPES } from "@/lib/utils";
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
+import { CalendarIcon, ClockIcon, User2Icon, CheckCircleIcon } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 function AppointmentsPage() {
-  // state management for the booking process - this could be done with something like Zustand for larger apps
+  // state management for the booking process
   const [selectedDentistId, setSelectedDentistId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -27,7 +30,6 @@ function AppointmentsPage() {
 
   const handleSelectDentist = (dentistId: string) => {
     setSelectedDentistId(dentistId);
-
     // reset the state when dentist changes
     setSelectedDate("");
     setSelectedTime("");
@@ -96,69 +98,100 @@ function AppointmentsPage() {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-6 py-8 pt-24">
-        {/* header */}
+        {/* HEADER SECTION */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Book an Appointment</h1>
-          <p className="text-muted-foreground">Find and book with verified dentists in your area</p>
+          <h1 className="text-4xl font-bold mb-3">Book Your Appointment</h1>
+          <p className="text-muted-foreground text-lg">
+            Schedule a consultation with our experienced dentists. Choose your preferred doctor, date, and time.
+          </p>
         </div>
 
-        {/* SHOW AVAILABLE DOCTORS WITH APPOINTMENT SLOTS */}
+        {/* INFO CARDS */}
         {currentStep === 1 && (
-          <div className="mb-12 pb-8 border-b border-border">
-            <h2 className="text-xl font-semibold mb-4">Available Appointment Slots</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-primary">Available Now</p>
-                <p className="text-muted-foreground text-sm mt-1">Start booking your appointment below</p>
+          <div className="grid md:grid-cols-3 gap-4 mb-8 pb-8 border-b border-border">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-50/50 dark:from-blue-950/20 dark:to-blue-950/10 border-blue-200/50 dark:border-blue-900/30">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+                    <User2Icon className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h3 className="font-semibold text-lg">Verified Doctors</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Select from our team of certified dental professionals with years of experience.
+                </p>
               </div>
-              <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-primary">Any Time</p>
-                <p className="text-muted-foreground text-sm mt-1">Choose your preferred date and time</p>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-50/50 dark:from-purple-950/20 dark:to-purple-950/10 border-purple-200/50 dark:border-purple-900/30">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
+                    <CalendarIcon className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h3 className="font-semibold text-lg">Flexible Scheduling</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Pick any available date and time slot that works best for you.
+                </p>
               </div>
-              <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-primary">Multiple Doctors</p>
-                <p className="text-muted-foreground text-sm mt-1">Select from our verified dentists</p>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-50 to-green-50/50 dark:from-green-950/20 dark:to-green-950/10 border-green-200/50 dark:border-green-900/30">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+                    <ClockIcon className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h3 className="font-semibold text-lg">Quick Booking</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Complete your booking in just 3 steps with instant confirmation.
+                </p>
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         <ProgressSteps currentStep={currentStep} />
 
-        {currentStep === 1 && (
-          <DoctorSelectionStep
-            selectedDentistId={selectedDentistId}
-            onContinue={() => setCurrentStep(2)}
-            onSelectDentist={handleSelectDentist}
-          />
-        )}
+        {/* BOOKING STEPS SECTION */}
+        <div className="mb-12">
+          {currentStep === 1 && (
+            <DoctorSelectionStep
+              selectedDentistId={selectedDentistId}
+              onContinue={() => setCurrentStep(2)}
+              onSelectDentist={handleSelectDentist}
+            />
+          )}
 
-        {currentStep === 2 && selectedDentistId && (
-          <TimeSelectionStep
-            selectedDentistId={selectedDentistId}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
-            selectedType={selectedType}
-            onBack={() => setCurrentStep(1)}
-            onContinue={() => setCurrentStep(3)}
-            onDateChange={setSelectedDate}
-            onTimeChange={setSelectedTime}
-            onTypeChange={setSelectedType}
-          />
-        )}
+          {currentStep === 2 && selectedDentistId && (
+            <TimeSelectionStep
+              selectedDentistId={selectedDentistId}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              selectedType={selectedType}
+              onBack={() => setCurrentStep(1)}
+              onContinue={() => setCurrentStep(3)}
+              onDateChange={setSelectedDate}
+              onTimeChange={setSelectedTime}
+              onTypeChange={setSelectedType}
+            />
+          )}
 
-        {currentStep === 3 && selectedDentistId && (
-          <BookingConfirmationStep
-            selectedDentistId={selectedDentistId}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
-            selectedType={selectedType}
-            isBooking={bookAppointmentMutation.isPending}
-            onBack={() => setCurrentStep(2)}
-            onModify={() => setCurrentStep(2)}
-            onConfirm={handleBookAppointment}
-          />
-        )}
+          {currentStep === 3 && selectedDentistId && (
+            <BookingConfirmationStep
+              selectedDentistId={selectedDentistId}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              selectedType={selectedType}
+              isBooking={bookAppointmentMutation.isPending}
+              onBack={() => setCurrentStep(2)}
+              onModify={() => setCurrentStep(2)}
+              onConfirm={handleBookAppointment}
+            />
+          )}
+        </div>
       </div>
 
       {bookedAppointment && (
@@ -174,60 +207,87 @@ function AppointmentsPage() {
         />
       )}
 
-      {/* SHOW EXISTING APPOINTMENTS FOR THE CURRENT USER */}
-      {userAppointments.length > 0 && (
-        <div className="mb-8 max-w-7xl mx-auto px-6 py-8">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span>📅 Your Upcoming Appointments</span>
-            <span className="bg-primary/20 text-primary text-xs px-2 py-1 rounded-full font-medium">
-              {userAppointments.length}
-            </span>
-          </h2>
+      {/* UPCOMING APPOINTMENTS SECTION */}
+      <div className="max-w-7xl mx-auto px-6 py-12 border-t border-border">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-2xl font-bold">Your Appointments</h2>
+            {userAppointments.length > 0 && (
+              <span className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-gradient-to-r from-primary to-primary/80 rounded-full">
+                {userAppointments.length}
+              </span>
+            )}
+          </div>
+          <p className="text-muted-foreground">
+            {userAppointments.length === 0 
+              ? "No appointments scheduled yet. Book your first consultation above!" 
+              : "Your scheduled consultations and their details"}
+          </p>
+        </div>
+
+        {userAppointments.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {userAppointments.map((appointment) => (
-              <div 
-                key={appointment.id} 
-                className="bg-card border border-border/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+            {userAppointments.map((appointment, index) => (
+              <Card
+                key={appointment.id}
+                className="bg-gradient-to-br from-card to-card/50 border border-border/50 overflow-hidden hover:shadow-lg transition-all duration-300 group"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <img
-                      src={appointment.doctorImageUrl}
-                      alt={appointment.doctorName}
-                      className="size-10 rounded-full"
-                    />
+                <div className="p-6 space-y-4">
+                  {/* Doctor Info */}
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                      <img
+                        src={appointment.doctorImageUrl}
+                        alt={appointment.doctorName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">Dr. {appointment.doctorName}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{appointment.reason}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{appointment.doctorName}</p>
-                    <p className="text-muted-foreground text-xs truncate">{appointment.reason}</p>
+
+                  {/* Appointment Details */}
+                  <div className="space-y-2 pt-2 border-t border-border/30">
+                    <div className="flex items-center gap-2 text-sm">
+                      <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="text-foreground font-medium">
+                        {format(new Date(appointment.date), "MMM dd, yyyy")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <ClockIcon className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="text-foreground font-medium">{appointment.time}</span>
+                    </div>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-border/30">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs font-semibold text-green-600">Confirmed</span>
                   </div>
                 </div>
-                <div className="space-y-2 text-sm mb-3">
-                  <p className="text-muted-foreground flex items-center gap-2">
-                    <span>📅</span> {format(new Date(appointment.date), "MMM d, yyyy")}
-                  </p>
-                  <p className="text-muted-foreground flex items-center gap-2">
-                    <span>🕐</span> {appointment.time}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  <span className="text-green-600 font-medium">Confirmed</span>
-                </div>
-              </div>
+              </Card>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* SHOW MESSAGE IF NO UPCOMING APPOINTMENTS */}
-      {userAppointments.length === 0 && currentStep > 3 && (
-        <div className="mb-8 max-w-7xl mx-auto px-6 py-8">
-          <div className="bg-card/50 border border-border/50 border-dashed rounded-lg p-8 text-center">
-            <p className="text-muted-foreground">No upcoming appointments. Book one to get started!</p>
-          </div>
-        </div>
-      )}
+        ) : (
+          <Card className="border-dashed bg-muted/30">
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <CalendarIcon className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No Appointments Yet</h3>
+              <p className="text-muted-foreground mb-6">
+                You haven't booked any appointments yet. Start by selecting a doctor above to schedule your first visit!
+              </p>
+              <Button onClick={() => setCurrentStep(1)} className="bg-gradient-to-r from-primary to-primary/80">
+                Book Your First Appointment
+              </Button>
+            </div>
+          </Card>
+        )}
+      </div>
     </>
   );
 }
